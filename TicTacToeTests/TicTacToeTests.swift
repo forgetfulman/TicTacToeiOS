@@ -11,9 +11,17 @@ import XCTest
 
 class TicTacToeTests: XCTestCase {
     
+    var playerX: Player!
+    var playerO: Player!
+    var game: TicTacToeGame!
+    var gameBoard: TicTacToeGameBoard!
+    
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        playerX = Player.init(name: "Player X", token: PlayerToken.X)
+        playerO = Player.init(name: "Player O", token: PlayerToken.X)
+        game = TicTacToeGame.init(name: "Test Game", playerX: playerX, playerO: playerO)
+        gameBoard = TicTacToeGameBoard.init()
     }
     
     override func tearDown() {
@@ -21,16 +29,91 @@ class TicTacToeTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    //MARK: Player Class Tests
+    func testPlayerInitializationSucceeds() {
+        XCTAssertNotNil(playerX)
     }
     
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    //MARK: Game Class Tests
+    func testGameInitializationSucceeds() {
+        XCTAssertNotNil(game)
+    }
+    
+    func testGameResultIsADraw() {
+        let topRowMoves = [1: PlayerToken.X, 2: PlayerToken.O, 3: PlayerToken.X]
+        let middleRowMoves = [1: PlayerToken.O, 2: PlayerToken.O, 3: PlayerToken.X]
+        let bottomRowMoves = [1: PlayerToken.X, 2: PlayerToken.X, 3: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(game.evaluateGameStatus(gameBoard: gameBoard) == GameStatus.Draw)
+    }
+    
+    func testPlayerXWonOnColumn() {
+        let topRowMoves = [1: PlayerToken.X, 2: PlayerToken.O, 3: PlayerToken.X]
+        let middleRowMoves = [1: PlayerToken.X, 2: PlayerToken.O, 3: PlayerToken.O]
+        let bottomRowMoves = [1: PlayerToken.X, 2: PlayerToken.X, 3: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(game.evaluateGameStatus(gameBoard: gameBoard) == GameStatus.xWon)
+    }
+    
+    func testPlayerYWonOnDiagonal() {
+        let topRowMoves = [1: PlayerToken.O, 2: PlayerToken.X, 3: PlayerToken.X]
+        let middleRowMoves = [1: PlayerToken.X, 2: PlayerToken.O, 3: PlayerToken.O]
+        let bottomRowMoves = [1: PlayerToken.X, 2: PlayerToken.X, 3: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(game.evaluateGameStatus(gameBoard: gameBoard) == GameStatus.oWon)
+    }
+    
+    func testPlayerXWonOnRow() {
+        let topRowMoves = [1: PlayerToken.X, 2: PlayerToken.X, 3: PlayerToken.X]
+        let middleRowMoves = [1: PlayerToken.X, 2: PlayerToken.O, 3: PlayerToken.O]
+        let bottomRowMoves = [1: PlayerToken.O, 2: PlayerToken.X, 3: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(game.evaluateGameStatus(gameBoard: gameBoard) == GameStatus.xWon)
+    }
+    
+    func testStillPlaying() {
+        let topRowMoves = [1: PlayerToken.X, 3: PlayerToken.O]
+        let middleRowMoves = [1: PlayerToken.O, 2: PlayerToken.X, 3: PlayerToken.O]
+        let bottomRowMoves = [1: PlayerToken.X, 2: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(game.evaluateGameStatus(gameBoard: gameBoard) == GameStatus.playing)
+    }
+    
+    func layGameBoardForTesting(topRowMoves: [Int : PlayerToken], middleRowMoves: [Int : PlayerToken], bottomRowMoves: [Int : PlayerToken]) {
+        var rowNumber = 1
+        for rows in [topRowMoves, middleRowMoves, bottomRowMoves] {
+            for row in rows  {
+                gameBoard.playTokenOnGameBoard(playedToken: row.value, column: row.key, row: rowNumber)
+            }
+            rowNumber += 1
         }
     }
     
+    //MARK: Game Board Tests
+    func testPlayerTokenPlacedOnBoardSquare() {
+        gameBoard.playTokenOnGameBoard(playedToken: PlayerToken.O, column: 1, row: 1)
+        XCTAssertTrue(gameBoard.topRow[1]!.token! == PlayerToken.O)
+    }
+    
+    func test1stColumnRenderedCorrectly() {
+        let topRowMoves = [1: PlayerToken.X]
+        let middleRowMoves = [1: PlayerToken.O]
+        let bottomRowMoves = [1: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(gameBoard.topRow[1]!.token! == PlayerToken.X
+            && gameBoard.middleRow[1]!.token! == PlayerToken.O
+            && gameBoard.bottomRow[1]!.token! == PlayerToken.O)
+    }
+    
+    func testTopToBottomDiagnalRenderedCorrectly() {
+        let topRowMoves = [1: PlayerToken.X]
+        let middleRowMoves = [2: PlayerToken.O]
+        let bottomRowMoves = [3: PlayerToken.O]
+        layGameBoardForTesting(topRowMoves: topRowMoves, middleRowMoves: middleRowMoves, bottomRowMoves: bottomRowMoves)
+        XCTAssertTrue(gameBoard.topRow[1]!.token! == PlayerToken.X
+            && gameBoard.middleRow[2]!.token! == PlayerToken.O
+            && gameBoard.bottomRow[3]!.token! == PlayerToken.O)
+    }
+    
 }
+
